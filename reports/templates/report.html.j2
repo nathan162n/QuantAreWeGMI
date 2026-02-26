@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoTrader Report — {{ report_date }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #eee; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #00d4ff; margin-bottom: 5px; font-size: 1.8em; }
+        h2 { color: #00d4ff; margin: 20px 0 10px; font-size: 1.3em; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .subtitle { color: #888; font-size: 0.9em; margin-bottom: 20px; }
+        .status-bar { display: flex; gap: 20px; background: #16213e; padding: 15px; border-radius: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .status-item { flex: 1; min-width: 150px; }
+        .status-label { font-size: 0.75em; color: #888; text-transform: uppercase; }
+        .status-value { font-size: 1.4em; font-weight: bold; }
+        .positive { color: #00e676; }
+        .negative { color: #ff5252; }
+        .neutral { color: #ffd740; }
+        .regime-bull { color: #00e676; }
+        .regime-neutral { color: #ffd740; }
+        .regime-bear { color: #ff5252; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th { background: #16213e; color: #00d4ff; padding: 10px; text-align: left; font-size: 0.85em; }
+        td { padding: 8px 10px; border-bottom: 1px solid #2a2a3e; font-size: 0.85em; }
+        tr:hover { background: #16213e; }
+        .card { background: #16213e; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .metric { background: #0f3460; padding: 15px; border-radius: 8px; }
+        .metric-label { font-size: 0.75em; color: #888; text-transform: uppercase; }
+        .metric-value { font-size: 1.8em; font-weight: bold; margin-top: 5px; }
+        .footer { margin-top: 30px; text-align: center; color: #555; font-size: 0.8em; }
+        .circuit-active { background: #ff5252; color: white; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; margin-bottom: 15px; }
+        .circuit-inactive { background: #00e676; color: #1a1a2e; padding: 5px 10px; border-radius: 5px; display: inline-block; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AlgoTrader Performance Report</h1>
+        <p class="subtitle">Generated: {{ generated_at }} | Database: {{ db_backend }} | Strategy: {{ strategy_name }}</p>
+
+        {% if circuit_breaker_active %}
+        <div class="circuit-active">CIRCUIT BREAKER ACTIVE — Trading Halted</div>
+        {% endif %}
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-label">Portfolio Value</div>
+                <div class="status-value">${{ "%.2f"|format(portfolio_value) }}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Cash</div>
+                <div class="status-value">${{ "%.2f"|format(cash) }}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Total P&L</div>
+                <div class="status-value {{ 'positive' if total_pnl >= 0 else 'negative' }}">
+                    ${{ "%.2f"|format(total_pnl) }} ({{ "%.2f"|format(total_return_pct * 100) }}%)
+                </div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Starting Capital</div>
+                <div class="status-value">${{ "%.2f"|format(starting_capital) }}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Days Running</div>
+                <div class="status-value">{{ days_running }}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Regime</div>
+                <div class="status-value regime-{{ regime|lower }}">{{ regime }}</div>
+            </div>
+        </div>
+
+        <h2>Performance Metrics</h2>
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-label">Sharpe Ratio</div>
+                <div class="metric-value {{ 'positive' if sharpe > 0 else 'negative' }}">{{ "%.2f"|format(sharpe) }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Sortino Ratio</div>
+                <div class="metric-value {{ 'positive' if sortino > 0 else 'negative' }}">{{ "%.2f"|format(sortino) }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Max Drawdown</div>
+                <div class="metric-value negative">{{ "%.2f"|format(max_drawdown * 100) }}%</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Win Rate</div>
+                <div class="metric-value">{{ "%.1f"|format(win_rate * 100) }}%</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Total Trades</div>
+                <div class="metric-value">{{ total_trades }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Avg Hold Days</div>
+                <div class="metric-value">{{ "%.1f"|format(avg_hold_days) }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">PDT Trades This Week</div>
+                <div class="metric-value {{ 'negative' if pdt_count >= 3 else 'neutral' }}">{{ pdt_count }}/3</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Open Positions</div>
+                <div class="metric-value">{{ open_positions|length }}</div>
+            </div>
+        </div>
+
+        <h2>Regime Status</h2>
+        <div class="card">
+            <p>Regime: <strong class="regime-{{ regime|lower }}">{{ regime }}</strong></p>
+            <p>SPY: ${{ "%.2f"|format(spy_price) }} vs SMA(200): ${{ "%.2f"|format(spy_sma) }}</p>
+            <p>VIXY: ${{ "%.2f"|format(vix_level) }}</p>
+        </div>
+
+        {% if open_positions %}
+        <h2>Open Positions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Entry Price</th>
+                    <th>Current Price</th>
+                    <th>Unrealized P&L</th>
+                    <th>Days Held</th>
+                    <th>Stop Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pos in open_positions %}
+                <tr>
+                    <td><strong>{{ pos.symbol }}</strong></td>
+                    <td>${{ "%.2f"|format(pos.entry_price) }}</td>
+                    <td>${{ "%.2f"|format(pos.current_price) }}</td>
+                    <td class="{{ 'positive' if pos.unrealized_pnl >= 0 else 'negative' }}">
+                        ${{ "%.2f"|format(pos.unrealized_pnl) }}
+                    </td>
+                    <td>{{ pos.days_held }}</td>
+                    <td>${{ "%.2f"|format(pos.stop_price) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <h2>Recent Closed Trades (Last 20)</h2>
+        {% if closed_trades %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Entry</th>
+                    <th>Exit</th>
+                    <th>P&L</th>
+                    <th>Exit Reason</th>
+                    <th>Hold Days</th>
+                    <th>Day Trade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in closed_trades %}
+                <tr>
+                    <td><strong>{{ trade.symbol }}</strong></td>
+                    <td>${{ "%.2f"|format(trade.entry_price) }}</td>
+                    <td>${{ "%.2f"|format(trade.exit_price) }}</td>
+                    <td class="{{ 'positive' if trade.realized_pnl >= 0 else 'negative' }}">
+                        ${{ "%.2f"|format(trade.realized_pnl) }}
+                    </td>
+                    <td>{{ trade.exit_reason }}</td>
+                    <td>{{ trade.hold_days }}</td>
+                    <td>{{ "Yes" if trade.was_day_trade else "No" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="card">No closed trades yet.</div>
+        {% endif %}
+
+        <div class="footer">
+            <p>AlgoTrader v1.0 | Mean Reversion Strategy | Generated by dashboard.py</p>
+        </div>
+    </div>
+</body>
+</html>

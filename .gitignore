@@ -1,0 +1,17 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+data/algotrader.db
+logs/
+reports/output/*.html
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+prompt.md
+README.md
+response.md
+image.png
+BUILD_PLAN.md
+.claude

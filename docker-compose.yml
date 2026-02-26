@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  algotrader:
+    build: .
+    container_name: algotrader
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports/output:/app/reports/output
+    environment:
+      - TZ=America/New_York
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"

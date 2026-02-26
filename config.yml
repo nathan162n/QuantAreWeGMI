@@ -1,0 +1,162 @@
+trading:
+  mode: "paper"
+  allow_shorts: false
+  starting_capital: 100000.00
+
+universe:
+  base_list_path: "data/universe_largecap.csv"
+  min_price: 15.00
+  min_adv_dollars: 50_000_000
+  max_realized_vol: 1.50
+  max_spread_pct: 0.0005
+  earnings_blackout_days: 3
+  min_universe_size: 10
+
+strategies:
+  layer1:
+    vwap_deviation_entry: 0.003
+    rsi_entry_threshold: 48
+    rsi_exit_threshold: 56
+    max_hold_minutes: 90
+    stop_atr_multiplier: 1.0
+    stop_min_pct: 0.003
+    take_profit_r_multiple: 2.0
+    vwap_proximity_exit_pct: 0.001
+    no_entry_before: "09:35"
+    no_entry_after: "15:00"
+  layer2:
+    breakout_buffer_pct: 0.0005
+    volume_confirmation_ratio: 1.2
+    bar_position_threshold: 0.60
+    extension_target_multiplier: 1.5
+    max_range_atr_multiplier: 4.0
+    max_hold_minutes: 330
+    breakout_failure_pct: 0.002
+    stop_pct_of_range: 0.5
+    no_entry_before: "09:45"
+    no_entry_after: "14:30"
+  layer3:
+    rsi_entry_threshold: 32
+    rsi_exit_threshold: 50
+    rsi_period: 7
+    atr_period: 14
+    max_hold_bars: 8
+    max_hold_minutes: 120
+    min_session_bars: 10
+    stop_atr_multiplier: 0.5
+    stop_min_pct: 0.003
+    take_profit_r_multiple: 1.5
+    no_entry_before: "09:35"
+    no_entry_after: "15:00"
+  layer4:
+    volume_surge_ratio: 2.0
+    bar_position_threshold: 0.70
+    rsi_overbought_exit: 70
+    max_hold_minutes: 90
+    consecutive_fade_bars: 2
+    volume_fade_ratio: 1.5
+    stop_atr_multiplier: 1.5
+    stop_min_pct: 0.003
+    take_profit_r_multiple: 2.0
+    no_entry_before: "09:35"
+    no_entry_after: "15:00"
+
+strategy:
+  l1_vwap_deviation_entry: 0.003
+  l1_rsi_period: 14
+  l1_rsi_entry: 48
+  l1_rsi_exit: 56
+  l1_max_hold_minutes: 90
+  l1_stop_atr_multiplier: 1.0
+  l2_range_computation_end_minutes: 30
+  l2_breakout_buffer_pct: 0.0005
+  l2_volume_confirmation_ratio: 1.2
+  l2_bar_position_threshold: 0.60
+  l2_extension_target_multiplier: 1.5
+  l2_max_range_atr_multiplier: 4.0
+  l2_hard_close_time: "15:30"
+  l3_rsi_period: 7
+  l3_rsi_oversold: 32
+  l3_rsi_recovery_exit: 50
+  l3_max_hold_bars: 8
+  l3_stop_atr_multiplier: 0.5
+  l3_bar_cadence: 1
+  l4_volume_surge_ratio: 2.0
+  l4_bar_position_threshold: 0.70
+  l4_rsi_period: 14
+  l4_rsi_exit_overbought: 70
+  l4_max_hold_minutes: 90
+  l4_volume_normalize_bars: 2
+  l4_stop_atr_multiplier: 1.5
+  l4_no_entry_after_minutes: 330
+  signal_confidence_notify_threshold: 0.20
+  eod_hard_close_time: "15:30"
+
+risk:
+  dollar_risk_per_trade: 150.00
+  max_positions: 15
+  max_position_pct: 0.10
+  max_position_value: 10000.00
+  max_loss_per_trade_dollars: 150.00
+  max_daily_loss_dollars: 1500.00
+  max_drawdown_dollars: 5000.00
+  atr_period: 14
+  daily_loss_limit: 0.015
+  weekly_loss_limit: 0.05
+  max_drawdown_limit: 0.05
+  consecutive_loss_days: 4
+  max_day_trades_per_week: 3
+  stop_out_cooldown_minutes: 30
+  trailing_stop_activation_r: 1.0
+  trailing_stop_trail_pct: 0.4
+  min_reward_risk_ratio: 1.5
+
+regime:
+  spy_sma_period: 200
+  vix_proxy_symbol: "VIXY"
+  vix_size_reduction_threshold: 40
+  vix_size_reduction_scalar: 0.50
+  vix_halt_threshold: 60
+  vixy_hard_halt_threshold: 35.0
+  vixy_size_reduction_threshold: 25.0
+  zscore_reversion_max_percentile: 0.30
+  zscore_momentum_min_percentile: 0.70
+
+prediction:
+  bars_horizon: 5
+  min_confidence_to_display: 0.20
+  min_confidence_to_trade: 55
+
+notifications:
+  signal_throttle_seconds: 60
+  queue_max_size: 1000
+  discord_rate_limit_per_minute: 25
+
+backtest:
+  default_slippage_pct: 0.0005
+  default_lookback_days: 365
+  target_trades_per_year: 300
+
+reporting:
+  risk_free_rate: 0.05
+  starting_capital: 100000.00
+
+scheduler:
+  timezone: "America/New_York"
+  premarket_run_hour: 8
+  premarket_run_minute: 0
+  opening_range_close_hour: 10
+  opening_range_close_minute: 0
+  eod_close_hour: 15
+  eod_close_minute: 30
+  post_market_summary_hour: 16
+  post_market_summary_minute: 30
+
+database:
+  pool_size: 5
+  max_overflow: 10
+  pool_recycle_seconds: 1800
+  connection_timeout: 10
+
+bar_store:
+  max_bars_per_symbol_per_timeframe: 200
