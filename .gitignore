@@ -10,7 +10,6 @@ reports/output/*.html
 dist/
 build/
 prompt.md
-README.md
 response.md
 image.png
 BUILD_PLAN.md
